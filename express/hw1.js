@@ -12,13 +12,26 @@ app.use(express.json());
 */
 let data = [];
 
-app.get('/input/:number', function(req, res) {
+app.get('/input/:number1/:number2/:number3/:number4', (req, res) => {
 
-    let inputnum = req.params.number
-    console.log(inputnum)
+    let inputnum1 = parseInt(req.params.number1)
+    let inputnum2 = parseInt(req.params.number2)
+    let inputnum3 = parseInt(req.params.number3)
+    let inputnum4 = parseInt(req.params.number4)
 
+    //res.send('num1 :' + inputnum1 + ' num2 :' + inputnum2 + ' num3 :' + inputnum3 + ' num4 :' + inputnum4);
+    if (typeof inputnum1 && typeof inputnum2 && typeof inputnum3 && typeof inputnum4 === 'number' && inputnum1 && inputnum2 && inputnum3 && inputnum4 < 10) {
+        res.status(200)
+        res.send('NUMBER CHECKED')
+
+    } else {
+        res.status(403)
+        res.send('INPUT VALUE IS MORE THEN 9')
+
+    }
 
 })
+
 
 app.get('/getdata', function(req, res) {
 
