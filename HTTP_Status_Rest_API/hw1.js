@@ -54,7 +54,6 @@ app.put('/updateData', (req, response) => {
 
     for (let i = 0; i < data.length; i++) {
         if (data[i].employee_id == req.body.id) {
-            //update ของเดิม
             data[i].position = req.body.pos
             data[i].tel = req.body.tel
             data[i].email = req.body.email

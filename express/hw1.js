@@ -134,16 +134,16 @@ app.use(express.json());
 
 app.get('/:nums', (request, response) => {
 
-
     if (!request.params.nums) return response.status(403).send('error no data')
 
     let nums = /^[1-9]{4,4}$/
+
     if (!nums.exec(request.params.nums)) return response.status(403).send('error data')
 
     console.log(request.params.nums)
 
     solvegame24(request.params.nums).then(res => {
-        response.send("ผลลัพธ์ : " + res)
+        response.send("ผลลัพธ์ : " + res + "\n" + "success")
     }).catch((e) => {
         console.log({ e })
         return response.status(403).send('error no solution')
