@@ -23,7 +23,7 @@ db.connect((err) => {
 })
 
 
-app.post('/user/create', (req, res) => {
+app.post('/employee/create', (req, res) => {
 
     if (!req.body.username ||
         !req.body.password) {
@@ -41,7 +41,7 @@ app.post('/user/create', (req, res) => {
     }, (err, results) => {
         if (err) {
 
-            return response.send('something wrong' + err);
+            return res.send('something wrong' + err);
         }
 
         res.send('Data inserted')
@@ -51,7 +51,7 @@ app.post('/user/create', (req, res) => {
 })
 
 
-app.post('/user/login', (req, res) => {
+app.post('/employee/login', (req, res) => {
 
 
     if (!req.body.username || !req.body.password) {
