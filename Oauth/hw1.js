@@ -1,15 +1,111 @@
 const express = require('express');
-
+const mysql = require('mysql2');
+require('dotenv').config()
+const SHA256 = require("crypto-js/sha256");
+const jwt = require('jsonwebtoken');
 const app = express();
 app.use(express.json());
 
-let data = []
-
-app.get('/getData', (req, response) => {
-    response.send(data)
+const db = mysql.createConnection({
+    namedPlaceholders: true,
+    host: "localhost",
+    user: "root",
+    password: "",
+    database: "gosofthomework"
 })
 
-app.post('/createData', (req, response) => {
+db.connect((err) => {
+    if (err) {
+        throw err
+    }
+    console.log("my sql connected")
+
+})
+
+
+app.post('/user/create', (req, res) => {
+
+    if (!req.body.username ||
+        !req.body.password) {
+        return res.status(400).send("error invalid data");
+    }
+    const hashpassword = SHA256(req.body.password).toString()
+
+
+    let sql = 'INSERT INTO user_login VALUE (:username,:password)'
+    let query = db.query(sql, {
+        username: req.body.username,
+        password: hashpassword
+
+
+    }, (err, results) => {
+        if (err) {
+
+            return response.send('something wrong' + err);
+        }
+
+        res.send('Data inserted')
+
+    })
+
+})
+
+
+app.post('/user/login', (req, res) => {
+
+
+    if (!req.body.username || !req.body.password) {
+
+        return res.status(400).send('User can not be found.')
+    }
+    try {
+        const hashpassword = SHA256(req.body.password).toString()
+        console.log(hashpassword)
+        let sql = 'SELECT password FROM user_login WHERE password=:password AND username =:username'
+        let query = db.query(sql, {
+            password: hashpassword,
+            username: req.body.username
+        }, (err, results) => {
+            if (err) {
+
+                return res.send('something wrong' + err);
+            }
+            if (results.length > 0) {
+                const username = req.body.username
+                const userath = { username: username }
+                const accesstoken = jwt.sign(userath, process.env.ACCESS_TOKEN_SECRET)
+                res.json({ accesstoken: accesstoken })
+
+            } else {
+                console.log(results)
+                res.status(400).send('Password worng or Empty')
+            }
+
+
+        })
+
+
+
+
+    } catch (error) {
+        res.status(500).send('NOT OK' + error)
+    }
+
+
+})
+
+
+
+
+app.get('/employee/getdata', authToken, (req, response) => {
+    let sql = 'SELECT * FROM employee_info'
+    let query = db.query(sql, (err, res) => {
+        if (err) throw err
+        response.send(res)
+    })
+})
+
+app.post('/employee/createData', authToken, (req, response) => {
 
     if (!req.body.firstname ||
         !req.body.lastname ||
@@ -29,21 +125,29 @@ app.post('/createData', (req, response) => {
 
     console.log(req.body);
 
-    let emp = {
-        firstname: req.body.firstname,
-        lastname: req.body.lastname,
-        employee_id: req.body.id,
-        position: req.body.pos,
+
+    let sql = 'INSERT INTO employee_info VALUE (:fname ,:lname ,:id ,:pos ,:tel ,:email )'
+    let query = db.query(sql, {
+        fname: req.body.firstname,
+        lname: req.body.lastname,
+        id: req.body.id,
+        pos: req.body.pos,
         tel: req.body.tel,
         email: req.body.email
-    };
 
-    data.push(emp);
+    }, (err, results) => {
+        if (err) {
 
-    response.send("ok");
+            return response.send('something wrong' + err);
+        }
+
+        response.send('Data inserted')
+
+    })
+
 })
 
-app.put('/updateData', (req, response) => {
+app.put('/employee/updateData', authToken, (req, response) => {
     if (!req.body.id ||
         !req.body.pos ||
         !req.body.tel ||
@@ -62,10 +166,26 @@ app.put('/updateData', (req, response) => {
         }
     }
 
-    return response.status(400).send("error not found");
+    let sql = 'UPDATE employee_info SET pos =:pos ,tel =:tel ,email =:email WHERE id =:id'
+    let query = db.query(sql, {
+        id: req.body.id,
+        pos: req.body.pos,
+        tel: req.body.tel,
+        email: req.body.email
+
+    }, (err, results) => {
+        if (err) {
+
+            return response.send('something wrong' + err);
+        }
+
+        response.send('Data update')
+
+    })
+
 })
 
-app.delete('/deleteData', (req, response) => {
+app.delete('/employee/deleteData', authToken, (req, response) => {
     if (!req.body.id) return response.status(400).send("error invalid data");
 
     for (let i = 0; i < data.length; i++) {
@@ -75,8 +195,38 @@ app.delete('/deleteData', (req, response) => {
         }
     }
 
-    return response.status(400).send("error not found");
+    let sql = 'DELETE FROM employee_info WHERE id=:id'
+    let query = db.query(sql, {
+        id: req.body.id,
+
+
+    }, (err, results) => {
+        if (err) {
+
+            return response.send('something wrong' + err);
+        }
+
+        response.send('Data delete')
+
+    })
 })
+
+
+function authToken(req, res, next) {
+
+    const authHeader = req.headers['authorization']
+    const token = authHeader && authHeader.split(' ')[1]
+    if (token == null) return res.status(401).send("NO TOKEN FOUND")
+
+    jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, userath) => {
+        if (err) return res.status(403).send("you don't have permission to enter")
+        req.userath = userath
+        next()
+    })
+
+}
+
+
 
 app.listen(3000, () => {
     console.log(`Listening on port: 3000`);
