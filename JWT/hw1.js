@@ -6,7 +6,7 @@ const SHA256 = require("crypto-js/sha256");
 const app = express();
 app.use(express.json());
 app.use(cookieParser())
-
+app.use(express.urlencoded({ extended: true }))
 const users = []
 
 app.get('/', (req, res) => {
@@ -15,8 +15,9 @@ app.get('/', (req, res) => {
 
 
 app.post('/login', (req, res) => {
+    console.log(req.body)
     if (!req.body.username || !req.body.password) {
-        res.status(401).send("PLEASE INPUT DATA")
+        return res.status(401).send("PLEASE INPUT DATA")
     }
     if (req.body.username == users.username && req.body.password == users.password) {
         const token = jwt.sign({ username: req.body.username }, process.env.ACCESS_TOKEN_SECRET)
@@ -36,12 +37,14 @@ app.get('/register', (req, res) => {
 
 })
 app.post('/user/register', (req, res) => {
+    console.log(req.body.username)
     try {
 
-        const hashpassword = SHA256(req.body.password)
+        const hashpassword = SHA256(req.body.password).toString()
         const user = { username: req.body.username, password: hashpassword }
-        users.push(user)
+        users.push(req.body.username)
         console.log('user registered')
+        console.log(users)
         res.sendFile(__dirname + '/login.html')
     } catch (error) {
         res.status(500).send('Not Success ' + error)
@@ -52,7 +55,7 @@ app.post('/user/register', (req, res) => {
 
 app.get('/home', (req, res) => {
     if (!req.body.username || !req.body.password) {
-        res.status(401).send("PLEASE INPUT DATA")
+        return res.status(401).send("PLEASE INPUT DATA")
     }
     if (!req.cookies.token) return res.sendFile(__dirname + '/login.html')
 
