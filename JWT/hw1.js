@@ -38,6 +38,9 @@ app.get('/register', (req, res) => {
 })
 app.post('/user/register', (req, res) => {
     console.log(req.body.username)
+    if (!req.body.username || !req.body.password) {
+        return res.status(401).send("PLEASE INPUT DATA")
+    }
     try {
 
         const hashpassword = SHA256(req.body.password).toString()
