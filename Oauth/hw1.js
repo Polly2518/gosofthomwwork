@@ -23,7 +23,7 @@ db.connect((err) => {
 })
 
 
-app.post('/employee/create', (req, res) => {
+app.post('/user/create', (req, res) => {
 
     if (!req.body.username ||
         !req.body.password) {
@@ -51,7 +51,7 @@ app.post('/employee/create', (req, res) => {
 })
 
 
-app.post('/employee/login', (req, res) => {
+app.post('/user/login', (req, res) => {
 
 
     if (!req.body.username || !req.body.password) {
