@@ -36,8 +36,6 @@ app.post('/user/create', (req, res) => {
     let query = db.query(sql, {
         username: req.body.username,
         password: hashpassword
-
-
     }, (err, results) => {
         if (err) {
 
@@ -49,9 +47,7 @@ app.post('/user/create', (req, res) => {
     })
 
 })
-
-
-app.post('/user/login', (req, res) => {
+app.post('/employee/login', (req, res) => {
 
 
     if (!req.body.username || !req.body.password) {
