@@ -29,13 +29,13 @@ app.post('/user/create', (req, res) => {
         !req.body.password) {
         return res.status(400).send("error invalid data");
     }
-    const hashpassword = SHA256(req.body.password).toString()
+    const hashedPassword = SHA256(req.body.password).toString()
 
 
     let sql = 'INSERT INTO user_login VALUE (:username,:password)'
     let query = db.query(sql, {
         username: req.body.username,
-        password: hashpassword
+        password: hashedPassword
     }, (err, results) => {
         if (err) {
 
@@ -55,11 +55,11 @@ app.post('/employee/login', (req, res) => {
         return res.status(400).send('User can not be found.')
     }
     try {
-        const hashpassword = SHA256(req.body.password).toString()
-        console.log(hashpassword)
+        const hashedPassword = SHA256(req.body.password).toString()
+        console.log(hashedPassword)
         let sql = 'SELECT password FROM user_login WHERE password=:password AND username =:username'
-        let query = db.query(sql, {
-            password: hashpassword,
+        db.query(sql, {
+            password: hashedPassword,
             username: req.body.username
         }, (err, results) => {
             if (err) {
@@ -68,21 +68,16 @@ app.post('/employee/login', (req, res) => {
             }
             if (results.length > 0) {
                 const username = req.body.username
-                const userath = { username: username }
-                const accesstoken = jwt.sign(userath, process.env.ACCESS_TOKEN_SECRET)
-                res.json({ accesstoken: accesstoken })
+                const accessToken = jwt.sign({ username: username }, process.env.ACCESS_TOKEN_SECRET)
+                res.json({ accesstoken: accessToken })
 
             } else {
                 console.log(results)
-                res.status(400).send('Password worng or Empty')
+                res.status(400).send('Password wrong or Empty')
             }
 
 
-        })
-
-
-
-
+        });
     } catch (error) {
         res.status(500).send('NOT OK' + error)
     }
@@ -112,18 +107,10 @@ app.post('/employee/createData', authToken, (req, response) => {
         return response.status(400).send("error invalid data");
     }
 
-    for (let i = 0; i < data.length; i++) {
-        if (data[i].employee_id == req.body.id ||
-            data[i].tel == req.body.tel ||
-            data[i].email == req.body.email)
-            return response.status(400).send("error data already exist");
-    }
-
     console.log(req.body);
 
-
     let sql = 'INSERT INTO employee_info VALUE (:fname ,:lname ,:id ,:pos ,:tel ,:email )'
-    let query = db.query(sql, {
+    db.query(sql, {
         fname: req.body.firstname,
         lname: req.body.lastname,
         id: req.body.id,
@@ -139,8 +126,7 @@ app.post('/employee/createData', authToken, (req, response) => {
 
         response.send('Data inserted')
 
-    })
-
+    });
 })
 
 app.put('/employee/updateData', authToken, (req, response) => {
@@ -152,18 +138,8 @@ app.put('/employee/updateData', authToken, (req, response) => {
         return response.status(400).send("error invalid data");
     }
 
-    for (let i = 0; i < data.length; i++) {
-        if (data[i].employee_id == req.body.id) {
-            data[i].position = req.body.pos
-            data[i].tel = req.body.tel
-            data[i].email = req.body.email
-
-            return response.send("ok");
-        }
-    }
-
     let sql = 'UPDATE employee_info SET pos =:pos ,tel =:tel ,email =:email WHERE id =:id'
-    let query = db.query(sql, {
+    db.query(sql, {
         id: req.body.id,
         pos: req.body.pos,
         tel: req.body.tel,
@@ -177,22 +153,14 @@ app.put('/employee/updateData', authToken, (req, response) => {
 
         response.send('Data update')
 
-    })
-
+    });
 })
 
 app.delete('/employee/deleteData', authToken, (req, response) => {
     if (!req.body.id) return response.status(400).send("error invalid data");
 
-    for (let i = 0; i < data.length; i++) {
-        if (data[i].employee_id == req.body.id) {
-            data.splice(i, 1);
-            return response.send("ok");
-        }
-    }
-
     let sql = 'DELETE FROM employee_info WHERE id=:id'
-    let query = db.query(sql, {
+    db.query(sql, {
         id: req.body.id,
 
 
@@ -204,7 +172,7 @@ app.delete('/employee/deleteData', authToken, (req, response) => {
 
         response.send('Data delete')
 
-    })
+    });
 })
 
 
